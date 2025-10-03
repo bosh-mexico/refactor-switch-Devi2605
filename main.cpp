@@ -1,13 +1,25 @@
 #include <iostream>
-#include "Payment.h"
+#include <iostream>
+#include <string>
+#include "payment_modes.h"
 
 int main() {
-    double amount = 150.75;
+    double amount;
+    std::string modeStr;
 
-    std::cout << checkout(PaymentMode::PayPal, amount) << std::endl;
-    std::cout << checkout(PaymentMode::GooglePay, amount) << std::endl;
-    std::cout << checkout(PaymentMode::CreditCard, amount) << std::endl;
-    std::cout << checkout(PaymentMode::Unknown, amount) << std::endl;
+    std::cout << "Enter payment amount: ";
+    std::cin >> amount;
+    std::cin.ignore();
+
+    std::cout << "Enter payment mode (PayPal, GooglePay, CreditCard): ";
+    std::getline(std::cin, modeStr);
+
+    auto processor = ProcessorFactory::create(modeStr);
+    if (processor) {
+        std::cout << processor->process(amount) << '\n';
+    } else {
+        std::cout << "Invalid payment mode selected!\n";
+    }
 
     return 0;
 }
