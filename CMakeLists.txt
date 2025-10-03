@@ -1,25 +1,41 @@
-cmake_minimum_required(VERSION 3.10)
-project(PaymentApp)
+cmake_minimum_required(VERSION 3.14)
+project(PaymentProcessorProject LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Main executable
-add_executable(paymentApp main.cpp Payment.cpp)
+# -----------------------------
+# Library for Payment Processors
+# -----------------------------
+file(GLOB SRC_FILES Payment_processor/*.cpp)
 
-# Enable testing
+add_library(payment_processors ${SRC_FILES})
+target_include_directories(payment_processors PUBLIC include)
+
+# -----------------------------
+# Main Executable
+# -----------------------------
+add_executable(payment_app Payment_app/main.cpp)
+target_link_libraries(payment_app PRIVATE payment_processors)
+
+# -----------------------------
+# GoogleTest Setup
+# -----------------------------
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/refs/heads/main.zip
+)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE) # for Windows
+FetchContent_MakeAvailable(googletest)
+
 enable_testing()
 
-# Find GoogleTest
-find_package(GTest REQUIRED)
+# -----------------------------
+# Unit Tests
+# -----------------------------
+add_executable(payment_tests test/PaymentProcessorTest.cpp)
+target_link_libraries(payment_tests PRIVATE payment_processors gtest gtest_main)
 
-include_directories(${GTEST_INCLUDE_DIRS})
-
-# Unit test executable
-add_executable(test_checkout test_checkout.cpp Payment.cpp)
-
-# Link GoogleTest and pthread
-target_link_libraries(test_checkout ${GTEST_LIBRARIES} pthread)
-
-# Register the tests with CTest
-add_test(NAME CheckoutTests COMMAND test_checkout)
+include(GoogleTest)
+gtest_discover_tests(payment_tests)
